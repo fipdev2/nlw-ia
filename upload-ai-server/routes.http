@@ -6,15 +6,26 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YMxkTrZu0g
 Content-Disposition: form-data; name="music-file"; filename="example.mp3"
 Content-Type: audio/mpeg
 
-< ./example.mp3
+< ./teste.mp3
 ------WebKitFormBoundary7MA4YMxkTrZu0gW--
 
 ###
 
 # @name create-transcription
-POST http://localhost:3333/videos/b7ba544a-c881-48af-926b-75cd87788056/transcription
+POST http://localhost:3333/videos/9cc3eb54-937f-4815-8c4e-590760a3c934/transcription
 Content-Type: application/json
 
 {
-    "prompt":"trap, homemade music"
+    "prompt":"transcreva o audio"
 }
+###
+
+# @name generate-ai-completion
+POST http://localhost:3333/ia/complete
+Content-Type: application/json
+
+{
+    "videoId":"9cc3eb54-937f-4815-8c4e-590760a3c934",
+    "temperature":0.5,
+    "prompt":"Gere um resumo sucinto da transcrição do video informada a seguir: '''{transcription}'''"
+} 
