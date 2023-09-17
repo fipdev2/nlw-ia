@@ -1,18 +1,21 @@
 import { useState } from "react"
 import { Button } from "./components/ui/button"
-import { FileVideo, Github, Moon, Sun, Upload, Wand2 } from 'lucide-react'
+import { Github, Moon, Sun, Wand2 } from 'lucide-react'
 import { Separator } from "./components/ui/separator";
 import { Textarea } from "./components/ui/textarea";
 import { Label } from "./components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Slider } from "./components/ui/slider";
-import { Popover, PopoverContent, PopoverTrigger } from "./components/ui/popover";
+import { useCompletion } from 'ai/react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./components/ui/dropdown-menu";
+import VideoInputForm from "./components/VideoInputForm";
+import PromptSelect from "./components/PromptSelect";
 
 
 function App() {
-
+  const [temperature, setTemperature] = useState(0.5);
   const [theme, setTheme] = useState("dark");
+  const [videoId, setVideoId] = useState<string | null>(null)
 
   const Icon = () => {
     if (theme == "dark")
@@ -20,8 +23,21 @@ function App() {
     else return <Sun className="w-4" />
   }
 
+  const { input, setInput, handleInputChange, handleSubmit, completion, isLoading } = useCompletion({
+    api: 'http://localhost:3333/ai/complete',
+    body: {
+      videoId,
+      temperature,
+
+    },
+    headers: {
+      'Content-type': 'application/json'
+    }
+  })
+
+
   return (
-    <body className={theme} style={{ minHeight: '100vh', minWidth:'100vw', display: 'flex', flexDirection: 'column' }}>
+    <body className={theme} style={{ minHeight: '100vh', minWidth: '100vw', display: 'flex', flexDirection: 'column' }}>
 
       <div className="px-6 py-3 flex items-center justify-between border-b">
         <h1 className="text-xl font-bold"> upload.ai {"</>"}</h1>
@@ -65,53 +81,25 @@ function App() {
             <Textarea
               placeholder="Inclua o prompt para a IA..."
               className="resize-none p-4 leading-relaxed"
+              value={input}
+              onChange={handleInputChange}
             />
             <Textarea
               placeholder="Resultado gerado pela IA..."
               className="resize-none p-4 leading-relaxed"
+              value={completion}
               readOnly
             />
           </div>
           <p>Lembre-se: você pode utilizar a variável <code className="text-violet-400">transcription</code> no seu prompt para adicionar o conteúdo da transcrição do vídeo selecionado.</p>
         </div>
         <aside className="w-80 space-y-6">
-          <form className="space-y-6">
-            <label
-              htmlFor="video"
-              className="border flex rounded-md aspect-video text-sm flex-col gap-2 border-dashed items-center justify-center text-muted-foreground hover:cursor-pointer hover:bg-white/5"
-            >
-              <FileVideo className="w-4 h-4" />
-              Selecione um vídeo
-            </label>
-            <input type="file" id="video" accept="video/mp4" className="sr-only" />
-            <Separator />
-            <div className="space-y-2">
-              <Label
-                htmlFor="transcription_prompt"
-              >
-                Prompt de transcrição
-              </Label>
-              <Textarea
-                id='transcription_prompt'
-                className="h-20 leading-relaxed"
-                placeholder="Inclua palavras-chave mencionadas no vídeo separadas por vírgula (,)"
-              />
-            </div>
-            <Button type="submit" className="w-full">Carregar vídeo <Upload className="w-4 h-4 ml-2" /></Button>
-          </form>
+          <VideoInputForm setVideoId={setVideoId} />
           <Separator />
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <Label>Prompt</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um prompt..." />
-                </SelectTrigger>
-                <SelectContent className={`${theme == "dark" && "bg-slate-950 text-slate-50 border-slate-100/20"}`}>
-                  <SelectItem value="title">Título do YouTube</SelectItem>
-                  <SelectItem value="description">Descrição do YouTube</SelectItem>
-                </SelectContent>
-              </Select>
+              <PromptSelect onPromptSelected={setInput} theme={theme} />
             </div>
             <Separator />
             <div className="space-y-2">
@@ -133,12 +121,14 @@ function App() {
                 min={0}
                 max={1}
                 step={0.1}
+                value={[temperature]}
+                onValueChange={temperature => setTemperature(temperature[0])}
               />
               <span className="block text-xs text-muted-foreground italic ">
                 Valores mais altos tendem a deixar o resultado mais criativo e com possíveis erros.
               </span>
               <Separator />
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 Executar
                 <Wand2 className="w-4 ml-2" />
               </Button>
