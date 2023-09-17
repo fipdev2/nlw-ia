@@ -1,0 +1,20 @@
+# @name upload-video
+POST http://localhost:3333/videos
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YMxkTrZu0gW
+
+------WebKitFormBoundary7MA4YMxkTrZu0gW
+Content-Disposition: form-data; name="music-file"; filename="example.mp3"
+Content-Type: audio/mpeg
+
+< ./example.mp3
+------WebKitFormBoundary7MA4YMxkTrZu0gW--
+
+###
+
+# @name create-transcription
+POST http://localhost:3333/videos/b7ba544a-c881-48af-926b-75cd87788056/transcription
+Content-Type: application/json
+
+{
+    "prompt":"trap, homemade music"
+}
